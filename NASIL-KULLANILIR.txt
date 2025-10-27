@@ -1,0 +1,64 @@
+====================================
+  GOZLUK MARKETI UYGULAMASI
+  Kullanım Kılavuzu
+====================================
+
+📋 GEREKSİNİMLER:
+-----------------
+1. Docker Desktop (indir: https://www.docker.com/products/docker-desktop)
+2. Bu klasörün tamamı
+
+
+🚀 İLK KURULUM (Diğer Bilgisayarda):
+-------------------------------------
+1. Docker Desktop'ı indir ve kur
+2. Docker Desktop'ı aç ve çalıştığından emin ol (yeşil simge)
+3. Bu klasörün tamamını kopyala (USB, network, vs.)
+4. "baslat.bat" dosyasına çift tıkla
+
+
+▶️ UYGULAMAYI BAŞLATMA:
+------------------------
+1. Docker Desktop'ın açık olduğundan emin ol
+2. "baslat.bat" dosyasına çift tıkla
+3. Tarayıcı otomatik açılacak
+4. Eğer açılmazsa: http://localhost adresine git
+
+
+⏹️ UYGULAMAYI DURDURMA:
+------------------------
+1. "durdur.bat" dosyasına çift tıkla
+VEYA
+2. Komut satırında: docker compose down
+
+
+🔐 İLK GİRİŞ:
+--------------
+Kullanıcı Adı: admin
+Şifre: admin123
+
+
+❓ SORUN GİDERME:
+-----------------
+- "Docker Desktop calismiyhor" hatası:
+  → Docker Desktop'ı aç ve yeşil simge olmasını bekle
+
+- Sayfa açılmıyor:
+  → 15 saniye bekle ve http://localhost'u yenile
+
+- Uygulama yavaş:
+  → İlk başlatma 30-60 saniye sürebilir
+
+- Tamamen sıfırlama:
+  1. durdur.bat çalıştır
+  2. demo/data klasörünü sil
+  3. baslat.bat çalıştır
+
+
+📞 DESTEK:
+----------
+Sorularınız için: [İletişim Bilgisi]
+
+
+Son Güncelleme: 27 Ekim 2025
+
