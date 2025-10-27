@@ -10,8 +10,8 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     volumes:
-      - ./demo/data:/app/data
-      - ./demo/uploads:/app/uploads
+      - backend-data:/app/data
+      - backend-uploads:/app/uploads
     networks:
       - app-network
 

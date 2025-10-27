@@ -7,7 +7,7 @@ echo Docker kontrol ediliyor...
 docker ps >nul 2>&1
 if errorlevel 1 (
     echo.
-    echo HATA: Docker Desktop calismiyhor!
+    echo HATA: Docker Desktop calismiyor!
     echo Lutfen Docker Desktop'i acin ve tekrar deneyin.
     echo.
     pause

@@ -32,10 +32,7 @@ VEYA
 2. Komut satırında: docker compose down
 
 
-🔐 İLK GİRİŞ:
---------------
-Kullanıcı Adı: admin
-Şifre: admin123
+ 
 
 
 ❓ SORUN GİDERME:
