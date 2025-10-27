@@ -13,7 +13,8 @@ my-ts-react-app/node_modules/
 my-ts-react-app/build/
 
 # Maven
-demo/target/
+demo/target/*
+!demo/target/*.jar
 demo/.mvn/wrapper/maven-wrapper.jar
 
 # IDE
