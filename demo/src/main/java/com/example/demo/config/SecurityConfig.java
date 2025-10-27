@@ -40,13 +40,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/health/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/simple-excel/**").permitAll()
                         .requestMatchers("/api/barcode/image/**").permitAll()
                         .requestMatchers("/api/orders/{id}/label").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/api/**").permitAll() // Tüm API'ler için geçici olarak
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
-                .headers(headers -> headers.frameOptions().disable());
+                .headers(headers -> headers.frameOptions().disable())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

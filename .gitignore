@@ -1,0 +1,31 @@
+# Environment files
+.env
+.env.local
+.env.production
+docker-compose.override.yml
+
+# Database files (her PC kendi veritabanını oluştursun)
+demo/data/
+demo/uploads/
+
+# Node modules
+my-ts-react-app/node_modules/
+my-ts-react-app/build/
+
+# Maven
+demo/target/
+demo/.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+demo/logs/
+
