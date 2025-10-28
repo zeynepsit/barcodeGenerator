@@ -201,6 +201,9 @@ public class SimpleExcelImportController {
             }
             
             // Sonra Order'ları kaydet
+            int newOrderCount = 0;
+            int updatedOrderCount = 0;
+            
             for (Order order : orderMap.values()) {
                 try {
                     // TotalItems ve TotalAmount hesapla
@@ -224,10 +227,12 @@ public class SimpleExcelImportController {
                         }
                         existingOrder.getOrderItems().addAll(order.getOrderItems());
                         orderRepository.save(existingOrder);
+                        updatedOrderCount++;
                         System.out.println("✅ Order güncellendi: " + order.getOrderNumber() + " (updatedAt korundu)");
                     } else {
                         // Yoksa yeni kaydet
                         orderRepository.save(order);
+                        newOrderCount++;
                         System.out.println("✅ Order kaydedildi: " + order.getOrderNumber());
                     }
                 } catch (Exception e) {
@@ -240,12 +245,32 @@ public class SimpleExcelImportController {
             // Dosyayı kaydet
             saveExcelFile(file);
             
+            // Detaylı mesaj oluştur
+            StringBuilder message = new StringBuilder();
+            message.append(orderMap.size()).append(" sipariş işlendi");
+            if (newOrderCount > 0) {
+                message.append(" (").append(newOrderCount).append(" yeni");
+            }
+            if (updatedOrderCount > 0) {
+                if (newOrderCount > 0) {
+                    message.append(", ");
+                } else {
+                    message.append(" (");
+                }
+                message.append(updatedOrderCount).append(" güncellendi");
+            }
+            if (newOrderCount > 0 || updatedOrderCount > 0) {
+                message.append(")");
+            }
+            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("importedCount", successCount);
             response.put("orderCount", orderMap.size());
+            response.put("newOrderCount", newOrderCount);
+            response.put("updatedOrderCount", updatedOrderCount);
             response.put("errorCount", errorCount);
-            response.put("message",  orderMap.size()-1 + " sipariş oluşturuldu");
+            response.put("message", message.toString());
 
             return ResponseEntity.ok(response);
             
