@@ -370,7 +370,6 @@ const BarcodeGeneratorPage: React.FC = () => {
                             <div style="margin: 5px 0; padding: 5px; background: white; border-radius: 3px;">
                               <strong>${index + 1}. Ürün:</strong><br>
                               <strong>Stok Kodu:</strong> ${item.stockCode || item.product?.barcode || 'Yok'}<br>
-                              <strong>Ürün Adı:</strong> ${item.product?.name || 'Yok'}<br>
                               <strong>Adet:</strong> ${item.quantity}
                             </div>
                         `).join('')}
@@ -416,45 +415,70 @@ const BarcodeGeneratorPage: React.FC = () => {
           
           // Her siparişin kendi kargo kodu ile barkod oluştur
           const orderBarcode = order.barcode || order.stockCode || '';
-          
-          const barcodeUrl = barcodeApi.getBarcodeImage(
+          const totalItems = order.orderItems?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+    
+    const barcodeUrl = barcodeApi.getBarcodeImage(
             orderBarcode,
-            barcodeType,
-            barcodeSize,
-            barcodeSize
+      barcodeType,
+            350,  // genişlik - yatay dikdörtgen
+            80    // yükseklik
           );
           
           // Son sayfa için farklı class kullan
           const pageClass = isLastPage ? 'page last-page' : 'page';
           
+          const currentDate = new Date().toLocaleString('tr-TR', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          });
+          
           allPages.push(`
-            <div class="${pageClass}">
-              <div class="group-info">
-                <h4>Sipariş Detayları:</h4>
-                <div style="margin: 10px 0; padding: 8px; background: #f5f5f5; border-radius: 3px;">
-                  <strong>Sipariş No:</strong> ${order.orderNumber}<br>
-                  <strong>Alıcı:</strong> ${order.customerName}<br>
-                  <strong>Teslimat Adresi:</strong> ${order.deliveryAddress || order.address || 'Yok'}<br>
-                  ${order.brand ? `<strong>Marka:</strong> ${order.brand}<br>` : ''}
-                  ${order.orderItems && order.orderItems.length > 0 ? `
-                    <div style="margin-top: 8px; padding-left: 10px; border-left: 3px solid #2196F3;">
-                      ${order.orderItems.map((item, index) => `
-                        <div style="margin: 5px 0; padding: 5px; background: white; border-radius: 3px;">
-                          <strong>${index + 1}. Ürün:</strong><br>
-                          ${item.product?.barcode ? `<strong>Barkod:</strong> ${item.product.barcode}<br>` : ''}
-                          <strong>Stok Kodu:</strong> ${item.stockCode || item.product?.stockCode || 'Yok'}<br>
-                          <strong>Ürün Adı:</strong> ${item.product?.name || 'Yok'}<br>
-                          <strong>Adet:</strong> ${item.quantity}
-                        </div>
-                      `).join('')}
-                    </div>
-                  ` : ''}
+            <div class="page">
+              <!-- Header: Firma Adı ve Tarih -->
+              <div class="header">
+                <div class="company-name">${order.customerName || 'Beste Koku'}</div>
+                <div class="date-info">
+                  <div>${currentDate}</div>
+                  <div class="page-number">${pageIndex}</div>
                 </div>
               </div>
-              <div class="barcode" style="margin-top: 30px;">
-                <h3 style="margin-bottom: 10px; font-size: 18px;">Kargo Kampanya Kodu:</h3>
-                <p style="font-size: 20px; font-weight: bold; margin: 10px 0;">${orderBarcode}</p>
-                <img src="${barcodeUrl}" alt="Barkod" style="max-width: 400px; margin-top: 10px;" />
+              
+              <!-- Sipariş Bilgileri -->
+              <div class="order-info">
+                <div class="order-number">Sipariş No: ${order.orderNumber}</div>
+                <div class="total-items">Toplam: ${totalItems}</div>
+              </div>
+              
+              <!-- Adres -->
+              <div class="address">${order.deliveryAddress || order.address || 'Adres yok'}</div>
+              
+              <!-- Kargo Kampanya Kodu ve Barkod -->
+              <div class="barcode-section">
+                <div class="barcode-label">Kargo Kampanya Kodu: ${orderBarcode}</div>
+                <div class="barcode-image">
+                  <img src="${barcodeUrl}" alt="Barkod" />
+                </div>
+              </div>
+              
+              <!-- Ürün Listesi -->
+              <div class="product-list">
+                <div class="product-header">
+                  <span class="col-stock">Stok Kodu</span>
+                  <span class="col-qty">Adet</span>
+                </div>
+                <div class="separator"></div>
+                ${order.orderItems && order.orderItems.length > 0 ? order.orderItems.map((item, index) => {
+                  const isLast = index === (order.orderItems?.length || 0) - 1;
+                  return `
+                  <div class="product-row">
+                    <span class="col-stock">${item.stockCode || item.product?.name || 'Yok'}</span>
+                    <span class="col-qty">${item.quantity}</span>
+                  </div>
+                  ${!isLast ? '<div class="separator"></div>' : ''}
+                `}).join('') : '<div class="product-row">Ürün yok</div>'}
               </div>
             </div>
           `);
@@ -466,46 +490,158 @@ const BarcodeGeneratorPage: React.FC = () => {
           <head>
             <title>Tüm Gruplar - ${groupsToPrint.length} Grup, ${allPages.length} Sipariş</title>
             <style>
+              @page {
+                size: 100mm 100mm;
+                margin: 2mm;
+              }
+              
+              * {
+                box-sizing: border-box;
+              }
+              
               body { 
-                text-align: center; 
                 font-family: Arial, sans-serif;
                 margin: 0;
-                padding: 20px;
+                padding: 0;
+                font-size: 6pt;
               }
+              
               .page {
+                width: 100mm;
+                min-height: 100mm;
+                padding: 2mm;
                 display: flex;
                 flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                padding: 40px 20px;
-              }
-              .page:not(:last-child) {
-                min-height: 100vh;
                 page-break-after: always;
               }
+              
               .page:last-child {
-                min-height: auto;
                 page-break-after: auto;
               }
-              .barcode { 
-                margin: 30px 0; 
+              
+              /* Header */
+              .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 2mm;
               }
-              .group-info { 
-                margin: 10px 0;
-                max-width: 800px;
-                width: 100%;
+              
+              .company-name {
+                font-size: 9pt;
+                font-weight: bold;
               }
+              
+              .date-info {
+                text-align: right;
+                font-size: 5pt;
+                line-height: 1.3;
+              }
+              
+              .page-number {
+                font-size: 7pt;
+                font-weight: bold;
+                margin-top: 0.5mm;
+              }
+              
+              /* Order Info */
+              .order-info {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1mm;
+                font-size: 5.5pt;
+              }
+              
+              .order-number {
+                font-weight: normal;
+              }
+              
+              .total-items {
+                font-weight: bold;
+                font-size: 6pt;
+              }
+              
+              /* Address */
+              .address {
+                font-size: 5pt;
+                margin-bottom: 2mm;
+                line-height: 1.2;
+              }
+              
+              /* Barcode Section */
+              .barcode-section {
+                margin: 2mm 0;
+                text-align: left;
+              }
+              
+              .barcode-label {
+                font-size: 5pt;
+                margin-bottom: 0.5mm;
+              }
+              
+              .barcode-image {
+                text-align: center;
+                margin: 1mm 0 2mm 0;
+              }
+              
+              .barcode-image img {
+                max-width: 90mm;
+                max-height: 18mm;
+                height: auto;
+              }
+              
+              /* Product List */
+              .product-list {
+                margin-top: 2mm;
+                flex: 1;
+              }
+              
+              .product-header {
+                display: flex;
+                justify-content: space-between;
+                font-size: 5pt;
+                font-weight: bold;
+                margin-bottom: 0.5mm;
+              }
+              
+              .separator {
+                border-bottom: 0.3mm solid #000;
+                margin: 0.3mm 0;
+              }
+              
+              .product-row {
+                display: flex;
+                justify-content: space-between;
+                font-size: 5pt;
+                padding: 0.5mm 0;
+                line-height: 1.2;
+              }
+              
+              .col-stock {
+                flex: 1;
+                text-align: left;
+              }
+              
+              .col-qty {
+                width: 10mm;
+                text-align: right;
+              }
+              
               @media print {
-                .page:not(:last-child) {
-                  min-height: 100vh;
-                  page-break-after: always !important;
-                  break-after: page !important;
+                body {
+                  margin: 0 !important;
+                  padding: 0 !important;
                 }
+                
+                .page {
+                  width: 100mm !important;
+                  min-height: 100mm !important;
+                  page-break-after: always !important;
+                }
+                
                 .page:last-child {
-                  min-height: auto !important;
-                  height: auto !important;
                   page-break-after: auto !important;
-                  break-after: auto !important;
                 }
               }
             </style>
@@ -640,72 +776,159 @@ const BarcodeGeneratorPage: React.FC = () => {
     const barcodeUrl = barcodeApi.getBarcodeImage(
       barcodeData,
       barcodeType,
-      barcodeSize,
-      barcodeSize
+      350,  // genişlik - yatay dikdörtgen
+      80    // yükseklik
     );
     
     // Yazdırma için yeni pencere - her sipariş için ayrı sayfa
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       // Her sipariş için ayrı sayfa oluştur
-      const pages = selectedGroup.items.map((order, orderIndex) => `
-        <div class="page" style="page-break-after: always;">
-          <div class="group-info">
-            <h4>Sipariş Detayları:</h4>
-            <div style="margin: 10px 0; padding: 8px; background: #f5f5f5; border-radius: 3px;">
-              <strong>Sipariş No:</strong> ${order.orderNumber}<br>
-              <strong>Alıcı:</strong> ${order.customerName}<br>
-              <strong>Teslimat Adresi:</strong> ${order.deliveryAddress || order.address || 'Yok'}<br>
-              ${order.brand ? `<strong>Marka:</strong> ${order.brand}<br>` : ''}
-              ${order.orderItems && order.orderItems.length > 0 ? `
-                <div style="margin-top: 8px; padding-left: 10px; border-left: 3px solid #2196F3;">
-                  ${order.orderItems.map((item, index) => `
-                    <div style="margin: 5px 0; padding: 5px; background: white; border-radius: 3px;">
-                      <strong>${index + 1}. Ürün:</strong><br>
-                      <strong>Stok Kodu:</strong> ${item.stockCode || item.product?.barcode || 'Yok'}<br>
-                      <strong>Ürün Adı:</strong> ${item.product?.name || 'Yok'}<br>
-                      <strong>Adet:</strong> ${item.quantity}
-                    </div>
-                  `).join('')}
-                </div>
-              ` : ''}
+       const pages = selectedGroup.items.map((order, orderIndex) => `
+         <div class="page" style="page-break-after: always;">
+           <h4 style="text-align: center; font-size: 10pt; margin: 2mm 0; font-weight: bold;">Sipariş Detayları:</h4>
+           
+            <div class="group-info">
+             <div style="margin: 2mm 0; padding: 2mm; background: #f5f5f5; border-radius: 1mm; font-size: 6pt;">
+                    <strong>Sipariş No:</strong> ${order.orderNumber}<br>
+                    <strong>Alıcı:</strong> ${order.customerName}<br>
+               <strong>Teslimat Adresi:</strong> ${order.deliveryAddress || order.address || 'Yok'}<br>
+               ${order.brand ? `<strong>Marka:</strong> ${order.brand}<br>` : ''}
+                    ${order.orderItems && order.orderItems.length > 0 ? `
+                 <div style="margin-top: 2mm; padding-left: 2mm; border-left: 1mm solid #2196F3;">
+                   ${order.orderItems.map((item, index) => `
+                     <div style="margin: 1mm 0; padding: 1mm; background: white; border-radius: 1mm; font-size: 5.5pt;">
+                       <strong>${index + 1}. Ürün:</strong><br>
+                       <strong>Stok Kodu:</strong> ${item.stockCode || item.product?.barcode || 'Yok'}<br>
+                       <strong>Ürün Adı:</strong> ${item.product?.name || 'Yok'}<br>
+                       <strong>Adet:</strong> ${item.quantity}
+                     </div>
+                      `).join('')}
+                 </div>
+                    ` : ''}
+                  </div>
+              </div>
+           
+           <div class="barcode" style="margin-top: 3mm; text-align: center;">
+             <h3 style="margin-bottom: 1mm; font-size: 6pt; font-weight: bold;">Kargo Kampanya Kodu:</h3>
+             <p style="font-size: 7pt; margin: 0.5mm 0; font-weight: bold;">${barcodeData}</p>
+             <img src="${barcodeUrl}" alt="Barkod" style="max-width: 85mm; max-height: 20mm; margin-top: 1mm;" />
             </div>
-          </div>
-          <div class="barcode">
-            <img src="${barcodeUrl}" alt="Barkod" style="max-width: 400px;" />
-          </div>
-        </div>
-      `).join('');
+            </div>
+       `).join('');
       
       printWindow.document.write(`
         <html>
           <head>
             <title>Barkod Yazdır - ${selectedGroup.items.length} Sipariş</title>
             <style>
+              @page {
+                size: 100mm 100mm;
+                margin: 2mm;
+              }
+              
+              * {
+                box-sizing: border-box;
+              }
+              
               body { 
-                text-align: center; 
                 font-family: Arial, sans-serif;
                 margin: 0;
-                padding: 20px;
+                padding: 0;
+                font-size: 7pt;
               }
+              
               .page {
-                min-height: 100vh;
+                width: 100mm;
+                min-height: 100mm;
+                padding: 2mm;
                 display: flex;
                 flex-direction: column;
-                justify-content: center;
-                align-items: center;
+                page-break-after: always;
               }
-              .barcode { 
-                margin: 30px 0; 
+              
+              .page:last-child {
+                page-break-after: auto;
               }
+              
+              .page h4 {
+                text-align: center !important;
+                font-size: 10pt !important;
+                margin: 2mm 0 !important;
+                font-weight: bold !important;
+              }
+              
               .group-info { 
-                margin: 10px 0;
-                max-width: 800px;
-                width: 100%;
+                margin: 1mm 0 !important;
+                width: 100% !important;
+                font-size: 6pt !important;
               }
+              
+              .group-info > div {
+                margin: 2mm 0 !important;
+                padding: 2mm !important;
+                background: #f5f5f5 !important;
+                border-radius: 1mm !important;
+                font-size: 6pt !important;
+              }
+              
+              .group-info div div {
+                margin-top: 2mm !important;
+                padding-left: 2mm !important;
+                border-left: 1mm solid #2196F3 !important;
+              }
+              
+              .group-info div div div {
+                margin: 1mm 0 !important;
+                padding: 1mm !important;
+                background: white !important;
+                border-radius: 1mm !important;
+                font-size: 5.5pt !important;
+                border-left: none !important;
+              }
+              
+              .group-info strong {
+                font-weight: bold !important;
+              }
+              
+              .barcode { 
+                margin-top: 3mm !important;
+                text-align: center !important;
+              }
+              
+              .barcode h3 {
+                margin-bottom: 1mm !important;
+                font-size: 6pt !important;
+                font-weight: bold !important;
+              }
+              
+              .barcode p {
+                font-size: 7pt !important;
+                margin: 0.5mm 0 !important;
+                font-weight: bold !important;
+              }
+              
+              .barcode img {
+                max-width: 85mm !important;
+                max-height: 20mm !important;
+                height: auto !important;
+                margin-top: 1mm !important;
+              }
+              
               @media print {
+                body {
+                  margin: 0 !important;
+                  padding: 0 !important;
+                }
+                
                 .page {
-                  page-break-after: always;
+                  width: 100mm !important;
+                  min-height: 100mm !important;
+                  page-break-after: always !important;
+                }
+                
+                .page:last-child {
+                  page-break-after: auto !important;
                 }
               }
             </style>
@@ -829,8 +1052,8 @@ const BarcodeGeneratorPage: React.FC = () => {
             <Paper elevation={3} sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6">
-                  Sipariş Grupları
-                </Typography>
+                Sipariş Grupları
+              </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Button
                     variant={statusFilter === 'PENDING' ? 'contained' : 'outlined'}
@@ -891,10 +1114,10 @@ const BarcodeGeneratorPage: React.FC = () => {
 
               <Box sx={{ mt: 2, mb: 2, display: 'flex', gap: 2 }}>
                 {statusFilter === 'PENDING' && (
-                  <Button
-                    variant="contained"
+                <Button
+                  variant="contained"
                     color="success"
-                    fullWidth
+                  fullWidth
                     startIcon={<PrintIcon />}
                     onClick={() => {
                       const currentGroups = 
@@ -926,14 +1149,14 @@ const BarcodeGeneratorPage: React.FC = () => {
                       activeTab === 3 ? groupedByType['4lu'].length :
                       groupedByType['5veUstu'].length
                     })
-                  </Button>
+                </Button>
                 )}
-
+                
                 {statusFilter === 'SHIPPED' && (
-                  <Button
+                <Button
                     variant="contained"
                     color="warning"
-                    fullWidth
+                  fullWidth
                     startIcon={updatingStatus ? <CircularProgress size={20} color="inherit" /> : undefined}
                     onClick={() => {
                       const currentGroups = 
@@ -960,7 +1183,7 @@ const BarcodeGeneratorPage: React.FC = () => {
                       activeTab === 3 ? groupedByType['4lu'].length :
                       groupedByType['5veUstu'].length
                     })`}
-                  </Button>
+                </Button>
                 )}
               </Box>
 
@@ -970,7 +1193,7 @@ const BarcodeGeneratorPage: React.FC = () => {
                 {activeTab === 2 && renderGroupList(groupedByType['3lu'], '3lu')}
                 {activeTab === 3 && renderGroupList(groupedByType['4lu'], '4lu')}
                 {activeTab === 4 && renderGroupList(groupedByType['5veUstu'], '5veUstu')}
-              </Box>
+                </Box>
             </Paper>
           </Grid>
         </Grid>

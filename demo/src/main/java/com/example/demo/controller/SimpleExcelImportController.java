@@ -245,7 +245,7 @@ public class SimpleExcelImportController {
             response.put("importedCount", successCount);
             response.put("orderCount", orderMap.size());
             response.put("errorCount", errorCount);
-            response.put("message", successCount + " satır başarıyla yüklendi, " + orderMap.size() + " sipariş oluşturuldu");
+            response.put("message",  orderMap.size()-1 + " sipariş oluşturuldu");
 
             return ResponseEntity.ok(response);
             
