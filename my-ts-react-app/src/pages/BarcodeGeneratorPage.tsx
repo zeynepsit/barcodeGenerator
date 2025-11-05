@@ -414,7 +414,7 @@ const BarcodeGeneratorPage: React.FC = () => {
           const isLastPage = pageIndex === totalPages;
           
           // Her siparişin kendi kargo kodu ile barkod oluştur
-          const orderBarcode = order.barcode || order.stockCode || '';
+          const orderBarcode = order.cargoCampaignCode;
           const totalItems = order.orderItems?.reduce((sum, item) => sum + item.quantity, 0) || 0;
     
     const barcodeUrl = barcodeApi.getBarcodeImage(
@@ -528,18 +528,18 @@ const BarcodeGeneratorPage: React.FC = () => {
               }
               
               .company-name {
-                font-size: 9pt;
+                font-size: 15pt;
                 font-weight: bold;
               }
               
               .date-info {
                 text-align: right;
-                font-size: 5pt;
+                font-size: 7pt;
                 line-height: 1.3;
               }
               
               .page-number {
-                font-size: 7pt;
+                font-size: 9pt;
                 font-weight: bold;
                 margin-top: 0.5mm;
               }
@@ -550,7 +550,7 @@ const BarcodeGeneratorPage: React.FC = () => {
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 1mm;
-                font-size: 5.5pt;
+                font-size: 9pt;
               }
               
               .order-number {
@@ -559,14 +559,14 @@ const BarcodeGeneratorPage: React.FC = () => {
               
               .total-items {
                 font-weight: bold;
-                font-size: 6pt;
+                font-size: 8pt;
               }
               
               /* Address */
               .address {
-                font-size: 5pt;
+                font-size: 6.5pt;
                 margin-bottom: 2mm;
-                line-height: 1.2;
+                line-height: 1.3;
               }
               
               /* Barcode Section */
@@ -576,8 +576,9 @@ const BarcodeGeneratorPage: React.FC = () => {
               }
               
               .barcode-label {
-                font-size: 5pt;
+                font-size: 6.5pt;
                 margin-bottom: 0.5mm;
+                font-weight: bold;
               }
               
               .barcode-image {
@@ -600,7 +601,7 @@ const BarcodeGeneratorPage: React.FC = () => {
               .product-header {
                 display: flex;
                 justify-content: space-between;
-                font-size: 5pt;
+                font-size: 6.5pt;
                 font-weight: bold;
                 margin-bottom: 0.5mm;
               }
@@ -613,9 +614,12 @@ const BarcodeGeneratorPage: React.FC = () => {
               .product-row {
                 display: flex;
                 justify-content: space-between;
-                font-size: 5pt;
+                font-size: 6.5pt;
                 padding: 0.5mm 0;
-                line-height: 1.2;
+                line-height: 1.3;
+                font-size: 10pt;
+                font-weight: bold;
+              
               }
               
               .col-stock {
@@ -766,25 +770,21 @@ const BarcodeGeneratorPage: React.FC = () => {
   const handlePrintBarcode = () => {
     if (!selectedGroup) return;
     
-    // Excel'den gelen barcode alanını kullan (ilk barkod)
-    const firstBarcode = selectedGroup.barcode?.split(',')[0].trim() || '';
-    const firstStockCode = selectedGroup.stockCode?.split(',')[0].trim() || '';
-    
-    // Barkod için kargo kodunu (order.barcode) veya stok kodunu kullan
-    const barcodeData = firstBarcode || firstStockCode || selectedGroup.groupName;
-    
-    const barcodeUrl = barcodeApi.getBarcodeImage(
-      barcodeData,
-      barcodeType,
-      350,  // genişlik - yatay dikdörtgen
-      80    // yükseklik
-    );
-    
     // Yazdırma için yeni pencere - her sipariş için ayrı sayfa
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       // Her sipariş için ayrı sayfa oluştur
-       const pages = selectedGroup.items.map((order, orderIndex) => `
+       const pages = selectedGroup.items.map((order, orderIndex) => {
+         // Her siparişin kendi kargo kampanya kodu ile barkod oluştur
+         const orderBarcode = order.cargoCampaignCode || order.barcode || order.stockCode || '';
+         const barcodeUrl = barcodeApi.getBarcodeImage(
+           orderBarcode,
+           barcodeType,
+           350,  // genişlik - yatay dikdörtgen
+           80    // yükseklik
+         );
+         
+         return `
          <div class="page" style="page-break-after: always;">
            <h4 style="text-align: center; font-size: 10pt; margin: 2mm 0; font-weight: bold;">Sipariş Detayları:</h4>
            
@@ -811,11 +811,11 @@ const BarcodeGeneratorPage: React.FC = () => {
            
            <div class="barcode" style="margin-top: 3mm; text-align: center;">
              <h3 style="margin-bottom: 1mm; font-size: 6pt; font-weight: bold;">Kargo Kampanya Kodu:</h3>
-             <p style="font-size: 7pt; margin: 0.5mm 0; font-weight: bold;">${barcodeData}</p>
+             <p style="font-size: 7pt; margin: 0.5mm 0; font-weight: bold;">${orderBarcode}</p>
              <img src="${barcodeUrl}" alt="Barkod" style="max-width: 85mm; max-height: 20mm; margin-top: 1mm;" />
             </div>
             </div>
-       `).join('');
+       `}).join('');
       
       printWindow.document.write(`
         <html>

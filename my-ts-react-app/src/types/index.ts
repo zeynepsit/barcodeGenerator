@@ -33,7 +33,7 @@ export interface Order {
   address: string;
   phone?: string;
   email?: string;
-  cargoCampaignCode?: string;
+  cargoCampaignCode: string;
   barcode?: string;
   stockCode?: string;
   deliveryAddress?: string;

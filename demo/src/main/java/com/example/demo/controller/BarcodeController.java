@@ -51,21 +51,9 @@ public class BarcodeController {
                                                 @RequestParam(defaultValue = "300") int height) {
         try {
             byte[] imageBytes;
-            
-            switch (type.toUpperCase()) {
-                case "QR_CODE":
-                    imageBytes = barcodeService.generateQRCode(barcode, width, height);
-                    break;
-                case "EAN13":
-                    imageBytes = barcodeService.generateEAN13Barcode(barcode, width, height);
-                    break;
-                case "CODE128":
-                    imageBytes = barcodeService.generateCode128Barcode(barcode, width, height);
-                    break;
-                default:
-                    imageBytes = barcodeService.generateQRCode(barcode, width, height);
-            }
-            
+
+            imageBytes = barcodeService.generateCode128Barcode(barcode, width, height);
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.IMAGE_PNG);
             headers.setContentLength(imageBytes.length);
